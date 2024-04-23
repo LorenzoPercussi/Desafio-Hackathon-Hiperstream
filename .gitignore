@@ -1,2 +1,5 @@
 source/main.exe
-output/*
+output/dados.txt
+output/func_data.csv
+output/grafo.dot
+output/grafo.png
