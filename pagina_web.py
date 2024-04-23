@@ -6,7 +6,7 @@ import pandas as pd
 from ctypes import *
 
 
-
+os.environ["PATH"] += os.pathsep + (os.path.dirname(os.path.abspath(__file__)) + '\\Graphviz-10.0.1-win64\\bin')
 def adicionar_ligacao(grafo_dot, origem, destino, tipo):
     # Implemente a lógica para adicionar a ligação ao arquivo .dot
     pass
