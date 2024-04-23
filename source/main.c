@@ -20,17 +20,22 @@ struct Aplicacao {
   int fdb;
   Aplicacao *usa_dados;
 };
+
+void escape_special_characters(const char *input, char *output) {
+    int input_length = strlen(input);
+    int output_index = 0;
+    for (int i = 0; i < input_length; i++) {
+        if (input[i] == '\\' || input[i] == '\"') {
+            output[output_index++] = '\\'; // Adiciona uma barra invertida extra para escapar
+        }
+        output[output_index++] = input[i];
+    }
+    output[output_index] = '\0'; // Adiciona o caractere nulo ao final da string
+}
 //Baseparateste , Exemplo
 int main() {
 
-  char *arquivo = "Baseparateste.csv";
-  char comando[200];
-
-  // Primeiro %s chama a funcao e o segundo manda o 1o parametro
-  sprintf(comando, "python ajustar.py %s", arquivo);
-  system(comando);
-
-  FILE *stream = fopen("func_data.csv", "r");
+  FILE *stream = fopen("output/func_data.csv", "r");
   if (stream == NULL) {
     printf("Erro ao abrir o arquivo.\n");
     return 1;
@@ -67,18 +72,18 @@ int main() {
       strcpy(aplicacoes[numaplicacoes].String_backup, "");
     */
 
-    char *temp = strtok(buffer, ",");
+    char *temp = strtok(buffer, ";");
     aplicacoes[numaplicacoes].ID = atoi(temp);
-    temp = strtok(NULL, ",");
+    temp = strtok(NULL, ";");
     strcpy(aplicacoes[numaplicacoes].Label, temp);
-    temp = strtok(NULL, ",");
+    temp = strtok(NULL, ";");
     strcpy(aplicacoes[numaplicacoes].String_Entrada, temp);
-    temp = strtok(NULL, ",");
+    temp = strtok(NULL, ";");
     if (temp != NULL)
       strcpy(aplicacoes[numaplicacoes].String_Saida, temp);
     else
       strcpy(aplicacoes[numaplicacoes].String_Saida, "");
-    temp = strtok(NULL, ",");
+    temp = strtok(NULL, ";");
     if (temp != NULL)
       strcpy(aplicacoes[numaplicacoes].String_backup, temp);
     else
@@ -90,12 +95,13 @@ int main() {
     aplicacoes[numaplicacoes].usa_dados = NULL;
     aplicacoes[numaplicacoes].fornce_dados = NULL;
     aplicacoes[numaplicacoes].fornece_dados_backp = NULL;
+    /*
     printf("ID: %d, Label: %s, Entrada: %s, Saida: %s, Backup: %s\n",
            aplicacoes[numaplicacoes].ID, aplicacoes[numaplicacoes].Label,
            aplicacoes[numaplicacoes].String_Entrada,
            aplicacoes[numaplicacoes].String_Saida,
            aplicacoes[numaplicacoes].String_backup);
-
+    */
     numaplicacoes++;
     free(temp);
   }
@@ -104,7 +110,7 @@ int main() {
     for (int j = 0; j < numaplicacoes; j++) {
 
       if (i != j) {
-        if (strcmp(aplicacoes[i].String_Saida, aplicacoes[j].String_Entrada) ==
+        if (strcasecmp(aplicacoes[i].String_Saida, aplicacoes[j].String_Entrada) ==
             0) {
           aplicacoes[i].fornce_dados =
               realloc(aplicacoes[i].fornce_dados,
@@ -118,7 +124,7 @@ int main() {
           aplicacoes[j].usa_dados[aplicacoes[j].ud] = aplicacoes[i];
           aplicacoes[j].ud++;
         }
-        if (strcmp(aplicacoes[i].String_backup, aplicacoes[j].String_Entrada) ==
+        if (strcasecmp(aplicacoes[i].String_backup, aplicacoes[j].String_Entrada) ==
             0) {
           aplicacoes[i].fornece_dados_backp =
               realloc(aplicacoes[i].fornece_dados_backp,
@@ -135,26 +141,104 @@ int main() {
     }
   }
 
+
+    FILE *file = fopen("output/grafo.dot", "w");
+if (file == NULL) {
+    printf("Erro ao abrir o arquivo para escrita.\n");
+    return -1;
+}
+
+fprintf(file, "digraph G {\n");
+for (int i = 0; i < numaplicacoes; i++) {
+    // Escapando caracteres especiais nas strings de label
+    char escaped_label[MAX_LINE_LENGTH];
+    escape_special_characters(aplicacoes[i].Label, escaped_label);
+
+    fprintf(file, "  %d [label=\"%s\"];\n", aplicacoes[i].ID, escaped_label);
+    for (int j = 0; j < aplicacoes[i].fd; j++) {
+        char escaped_saida[MAX_LINE_LENGTH];
+        escape_special_characters(aplicacoes[i].String_Saida, escaped_saida);
+        fprintf(file, "  %d -> %d [label=\"Destino,%s\"];\n", aplicacoes[i].ID, aplicacoes[i].fornce_dados[j].ID, escaped_saida);
+    }
+    for (int j = 0; j < aplicacoes[i].fdb; j++) {
+        char escaped_backup[MAX_LINE_LENGTH];
+        escape_special_characters(aplicacoes[i].String_backup, escaped_backup);
+        fprintf(file, "  %d -> %d [label=\"Backup,%s\"];\n", aplicacoes[i].ID, aplicacoes[i].fornece_dados_backp[j].ID, escaped_backup);
+    }
+}
+fprintf(file, "}\n");
+fclose(file);
+
+    file = fopen("output/dados.txt", "w");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo de dados.\n");
+        return -1;
+    }
+    for (int i = 0; i < numaplicacoes; i++) {
+        int vazio = 1;
+        fprintf(file, "Aplicacao %d\n", aplicacoes[i].ID);
+
+        if(aplicacoes[i].ud > 0){
+        vazio = 0;
+        fprintf(file, "Usa dados de: ");
+        for (int j = 0; j < aplicacoes[i].ud; j++) {
+            fprintf(file, "%d", aplicacoes[i].usa_dados[j].ID);
+             if (j < aplicacoes[i].ud - 1)  
+              fprintf(file, ",");
+        }
+        fprintf(file, "\n");
+        }
+        if(aplicacoes[i].fd > 0){
+        vazio = 0;
+        fprintf(file, "Fornece dados pela saida para: ");
+        for (int j = 0; j < aplicacoes[i].fd; j++) {
+          
+            fprintf(file, "%d", aplicacoes[i].fornce_dados[j].ID);
+            if (j < aplicacoes[i].fd - 1)  
+              fprintf(file, ",");
+
+        }
+
+        fprintf(file, "\n");
+        }
+        if(aplicacoes[i].fdb){
+        vazio = 0;
+        fprintf(file, "Fornece dados pelo backup para: ");
+        for (int j = 0; j < aplicacoes[i].fdb; j++) {
+            fprintf(file, "%d", aplicacoes[i].fornece_dados_backp[j].ID);
+            if (j < aplicacoes[i].fdb - 1)  
+              fprintf(file, ",");
+        }
+        fprintf(file, "\n");
+        }
+        if(vazio == 1){
+          fprintf(file, "A aplicação não possui relações\n");
+        }
+         fprintf(file, "\n");
+    }
+
+    fclose(file);
+   
   for (int i = 0; i < numaplicacoes; i++) {
-    printf("Aplicacao %d\n", aplicacoes[i].ID);
-    printf("Usa dados de: ");
+    //printf("Aplicacao %d\n", aplicacoes[i].ID);
+    //printf("Usa dados de: ");
     for (int j = 0; j < aplicacoes[i].ud; j++) {
-      printf("%d,", aplicacoes[i].usa_dados[j].ID);
+      //printf("%d,", aplicacoes[i].usa_dados[j].ID);
     }
 
     if(aplicacoes[i].ud > 0)free(aplicacoes[i].usa_dados);
-    printf("\n");
-    printf("Fornece dados pela saida para: ");
+    //printf("\n");
+    //printf("Fornece dados pela saida para: ");
     for (int j = 0; j < aplicacoes[i].fd; j++) {
-      printf("%d,", aplicacoes[i].fornce_dados[j].ID);
+      //printf("%d,", aplicacoes[i].fornce_dados[j].ID);
     }
-    printf("\n");
+    //printf("\n");
     if(aplicacoes[i].ud > 0)free(aplicacoes[i].fornce_dados);
-    printf("Fornece dados pelo backup para: ");
+    //printf("Fornece dados pelo backup para: ");
     for (int j = 0; j < aplicacoes[i].fdb; j++) {
-      printf("%d,", aplicacoes[i].fornece_dados_backp[j].ID);
+      //printf("%d,", aplicacoes[i].fornece_dados_backp[j].ID);
     }
-    printf("\n\n");
+    //printf("\n\n");
     if(aplicacoes[i].ud > 0)free(aplicacoes[i].fornece_dados_backp);
   }
   fclose(stream);
