@@ -1,20 +1,88 @@
-Aplicacao 1
-Fornece dados pela saida para: 2,4
-
-Aplicacao 2
-Usa dados de: 1
-Fornece dados pela saida para: 6
-Fornece dados pelo backup para: 3
-
-Aplicacao 3
-Usa dados de: 2
-
-Aplicacao 4
-Usa dados de: 1
-
-Aplicacao 5
+Aplicacao 3036
 A aplicação não possui relações
 
-Aplicacao 6
-Usa dados de: 2
+Aplicacao 3037
+Fornece dados pelo backup para: 3043,3064
+
+Aplicacao 3038
+Fornece dados pelo backup para: 3044
+
+Aplicacao 3039
+Fornece dados pelo backup para: 3045
+
+Aplicacao 3040
+Fornece dados pelo backup para: 3044
+
+Aplicacao 3041
+Fornece dados pelo backup para: 3043,3064
+
+Aplicacao 3042
+Fornece dados pelo backup para: 3045
+
+Aplicacao 3043
+Usa dados de: 3037,3041,3049
+Fornece dados pela saida para: 3045
+
+Aplicacao 3044
+Usa dados de: 3038,3040,3048
+
+Aplicacao 3045
+Usa dados de: 3039,3042,3043,3050,3053,3064
+Fornece dados pelo backup para: 3046
+
+Aplicacao 3046
+Usa dados de: 3045,3054
+Fornece dados pela saida para: 3062
+
+Aplicacao 3048
+Fornece dados pelo backup para: 3044
+
+Aplicacao 3049
+Usa dados de: 3051
+Fornece dados pelo backup para: 3043,3064
+
+Aplicacao 3050
+Usa dados de: 3051
+Fornece dados pelo backup para: 3045
+
+Aplicacao 3051
+Fornece dados pelo backup para: 3049,3050,3052
+
+Aplicacao 3052
+Usa dados de: 3051
+
+Aplicacao 3053
+Fornece dados pelo backup para: 3045
+
+Aplicacao 3054
+Fornece dados pela saida para: 3046
+
+Aplicacao 3056
+A aplicação não possui relações
+
+Aplicacao 3057
+A aplicação não possui relações
+
+Aplicacao 3058
+A aplicação não possui relações
+
+Aplicacao 3059
+Fornece dados pela saida para: 3060
+
+Aplicacao 3060
+Usa dados de: 3059
+Fornece dados pela saida para: 3061
+
+Aplicacao 3061
+Usa dados de: 3060
+
+Aplicacao 3062
+Usa dados de: 3046
+
+Aplicacao 3063
+A aplicação não possui relações
+
+Aplicacao 3064
+Usa dados de: 3037,3041,3049
+Fornece dados pela saida para: 3045
 
