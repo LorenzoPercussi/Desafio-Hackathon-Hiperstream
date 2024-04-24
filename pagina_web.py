@@ -22,6 +22,13 @@ def move_uploaded_file(uploaded_file):
         f.write(uploaded_file.getbuffer())
     return file_path
 
+def clear_output_directory():
+    output_dir = "output"
+    if os.path.exists(output_dir):
+        files = os.listdir(output_dir)
+        for file in files:
+            file_path = os.path.join(output_dir, file)
+            os.remove(file_path)
 
 
 def main():
@@ -57,6 +64,7 @@ def main():
         st.dataframe(df)
 
         if st.button("Analisar Dados"):
+            clear_output_directory()
             
             data = []
             if 'erro' not in st.session_state:
