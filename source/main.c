@@ -178,13 +178,13 @@ fclose(file);
     }
     for (int i = 0; i < numaplicacoes; i++) {
         int vazio = 1;
-        fprintf(file, "Aplicação %d", aplicacoes[i].ID);
+        fprintf(file, "Aplicação %s(%d)", aplicacoes[i].Label,aplicacoes[i].ID);
 
         if(aplicacoes[i].ud > 0){
         vazio = 0;
         fprintf(file, "\nUsa dados de: ");
         for (int j = 0; j < aplicacoes[i].ud; j++) {
-            fprintf(file, "%d", aplicacoes[i].usa_dados[j].ID);
+            fprintf(file, "%s(%d)", aplicacoes[i].usa_dados[j].Label,aplicacoes[i].usa_dados[j].ID);
              if (j < aplicacoes[i].ud - 1)  
               fprintf(file, ",");
         }
@@ -193,13 +193,13 @@ fclose(file);
         if(aplicacoes[i].fd > 0){
         
         if(vazio == 0)
-        fprintf(file, "Fornece dados pela saida para: ");
+        fprintf(file, "Fornece dados pela PASTA DESTINO para as aplicações: ");
         else
-        fprintf(file, "\nFornece dados pela saida para: ");
+        fprintf(file, "\nFornece dados pela PASTA DESTINO para as aplicações: ");
         vazio = 0;
         for (int j = 0; j < aplicacoes[i].fd; j++) {
           
-            fprintf(file, "%d", aplicacoes[i].fornce_dados[j].ID);
+            fprintf(file, "%s(%d)", aplicacoes[i].fornce_dados[j].Label,aplicacoes[i].fornce_dados[j].ID);
             if (j < aplicacoes[i].fd - 1)  
               fprintf(file, ",");
 
@@ -210,13 +210,13 @@ fclose(file);
         if(aplicacoes[i].fdb){
 
           if(vazio == 0)
-          fprintf(file, "Fornece dados pelo backup para: ");
+          fprintf(file, "Fornece dados pela PASTA BACKUP para as aplicações: ");
           else
-          fprintf(file, "\nFornece dados pelo backup para: ");
+          fprintf(file, "\nFornece dados pela PASTA BACKUP para as aplicações: ");
           vazio = 0;
        
         for (int j = 0; j < aplicacoes[i].fdb; j++) {
-            fprintf(file, "%d", aplicacoes[i].fornece_dados_backp[j].ID);
+            fprintf(file, "%s(%d)", aplicacoes[i].fornece_dados_backp[j].Label, aplicacoes[i].fornece_dados_backp[j].ID);
             if (j < aplicacoes[i].fdb - 1)  
               fprintf(file, ",");
         }
