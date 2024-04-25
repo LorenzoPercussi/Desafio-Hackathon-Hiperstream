@@ -7,13 +7,14 @@ from ctypes import *
 import streamlit.components.v1 as components
 import json
 import pydotplus
+import re
 
-def verifica_dados(dataset):  
-    pastas_origem = []
-    pastas_destino = []
-    pastas_backup = []
-    ids_vistos = set()  # Conjunto para armazenar IDs únicos
+
+def verifica_dados(dataset):
+    padrao_pasta = r'^(?:[a-zA-Z]:[\\\/]|\\\\)(?:[a-zA-Z0-9]+[\\\/])*[a-zA-Z0-9]'
+    padrao_id = set()
     dados_limpos = []
+    
     for row in dataset:
         # Limpa as entradas
         id_ = row['ID'].strip()  # Renomeado para 'id_' para evitar conflito com a função id() do Python
@@ -22,11 +23,11 @@ def verifica_dados(dataset):
         pasta_backup = row['PastaBackup'].strip()
         
         # Verifica IDs repetidos
-        if id_ in ids_vistos:
+        if id_ in padrao_id:
             st.write(f"ID repetido encontrado: {id_}")
             st.session_state["erro"] = 1
         else:
-            ids_vistos.add(id_)
+            padrao_id.add(id_)
             # Adiciona os dados limpos à lista de dados
             dados_limpos.append(row)
         
@@ -39,11 +40,25 @@ def verifica_dados(dataset):
             st.write(f"A pasta de origem é igual à pasta de backup. ID: {id_}")   
             st.session_state["erro"] = 1
         
-        pastas_origem.append(pasta_origem)
-        pastas_destino.append(pasta_destino)
-        pastas_backup.append(pasta_backup)
+        # Verifica se as pastas seguem o padrão
+        if not re.match(padrao_pasta, pasta_origem) and pasta_origem != "":
+            
+            st.write(f"A pasta de origem não segue o padrão. ID: {id_}")
+            st.session_state["erro"] = 1
+        
+        if not re.match(padrao_pasta, pasta_destino) and pasta_destino != "":
+            
+            st.write(f"A pasta de destino não segue o padrão. ID: {id_}")
+            st.session_state["erro"] = 1
+        
+        if not re.match(padrao_pasta, pasta_backup) and pasta_backup != "":
+            
+            st.write(f"A pasta de backup não segue o padrão. ID: {id_}")
+            st.session_state["erro"] = 1
     
     return dados_limpos
+
+
 def dot_to_json(dot_file):
     graph = pydotplus.graph_from_dot_file(dot_file)
     nodes = []
@@ -56,7 +71,7 @@ def dot_to_json(dot_file):
             node_id = node.get_name().strip('"')
         
             label = node.get_label().strip('"')
-            nodes.append({"id": int(node_id), "label": int(node_id), "title": label, "shape": "dot", "size": 10})
+            nodes.append({"id": int(node_id), "label": label, "title": int(node_id), "shape": "box", "size": 10})
         except:
             pass
 
@@ -236,9 +251,13 @@ def main():
                                             },
                                             "layout": {
                                             "hierarchical": {
+                                                "nodeSpacing": 300,
                                                 "direction": "UD",
                                                 "sortMethod": "directed",
                                             }
+                                        },
+                                        "nodes":{
+                                            "shape": "box",
                                         },
                                         edges:{
                                         "arrows": {
