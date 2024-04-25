@@ -1,6 +1,6 @@
-Grupo: chatgpt lovers
-Código: HIPER-212
-Integrantes: Artur Valladares Hernandez Giacummo; Augusto Esteves Carrera; Lorenzo Percussi
+Grupo: chatgpt lovers.
+Código: HIPER-212.
+Integrantes: Artur Valladares Hernandez Giacummo; Augusto Esteves Carrera; Lorenzo Percussi.
 Bibliotecas necessarias:
 pip install streamlit
 pip install pandas
