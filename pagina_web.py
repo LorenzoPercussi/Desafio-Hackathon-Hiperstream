@@ -4,16 +4,74 @@ import subprocess
 import csv
 import pandas as pd
 from ctypes import *
-import pydot
-from PIL import Image
-import plotly.graph_objects as go
-import numpy as np
+import streamlit.components.v1 as components
+import json
+import pydotplus
 
-import networkx as nx
-import matplotlib.pyplot as plt
+def verifica_dados(dataset):  
+    pastas_origem = []
+    pastas_destino = []
+    pastas_backup = []
+    ids_vistos = set()  # Conjunto para armazenar IDs únicos
+    dados_limpos = []
+    for row in dataset:
+        # Limpa as entradas
+        id_ = row['ID'].strip()  # Renomeado para 'id_' para evitar conflito com a função id() do Python
+        pasta_origem = row['PastaOrigem'].strip()
+        pasta_destino = row['PastaDestino'].strip()
+        pasta_backup = row['PastaBackup'].strip()
+        
+        # Verifica IDs repetidos
+        if id_ in ids_vistos:
+            st.write(f"ID repetido encontrado: {id_}")
+            st.session_state["erro"] = 1
+        else:
+            ids_vistos.add(id_)
+            # Adiciona os dados limpos à lista de dados
+            dados_limpos.append(row)
+        
+        # Verifica se origem = destino/backup
+        if pasta_origem == pasta_destino:
+            st.write(f"A pasta de origem é igual à pasta de destino. ID: {id_}")
+            st.session_state["erro"] = 1
+        
+        if pasta_origem == pasta_backup:
+            st.write(f"A pasta de origem é igual à pasta de backup. ID: {id_}")   
+            st.session_state["erro"] = 1
+        
+        pastas_origem.append(pasta_origem)
+        pastas_destino.append(pasta_destino)
+        pastas_backup.append(pasta_backup)
+    
+    return dados_limpos
+def dot_to_json(dot_file):
+    graph = pydotplus.graph_from_dot_file(dot_file)
+    nodes = []
+    edges = []
+
+    for node in graph.get_nodes():
+        print(node.get_name())
+
+        try:
+            node_id = node.get_name().strip('"')
+        
+            label = node.get_label().strip('"')
+            nodes.append({"id": int(node_id), "label": int(node_id), "title": label, "shape": "dot", "size": 10})
+        except:
+            pass
+
+    for edge in graph.get_edges():
+        source = edge.get_source().strip('"')
+        target = edge.get_destination().strip('"')
+        label = edge.get_label().strip('"')
+        edges.append({"from": int(source), "to": int(target), "weight": 1, "title": label})
+
+    graph_data = {"nodes": nodes, "edges": edges}
+    return json.dumps(graph_data, indent=4)
+
 
 def move_uploaded_file(uploaded_file):
-    file_path = os.path.join("csv", uploaded_file.name)
+    file_path = os.path.join("csv/", uploaded_file.name)
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     return file_path
@@ -33,15 +91,15 @@ def main():
    
     st.title("Análise de Arquivos CSV")
 
-    # Verifica se o arquivo CSV foi carregado
     uploaded_file = st.file_uploader("Faça o upload de um arquivo CSV")
 
-    # Se um arquivo foi carregado, move-o para a pasta do código
+   
     if uploaded_file is not None:
-        #file_path = move_uploaded_file(uploaded_file)
+        
         st.write(f"Arquivo '{uploaded_file.name}' foi carregado com sucesso.")
+        move_uploaded_file(uploaded_file)
 
-    # Lista os arquivos CSV na pasta do código
+
     
     files = [file for file in os.listdir("csv/") if file.endswith(".csv")]
     st.write("Ou use um dos arquivos CSV abaixo")
@@ -61,7 +119,7 @@ def main():
 
         if st.button("Analisar Dados"):
             clear_output_directory()
-            
+            st.title("Resultados")
             data = []
             if 'erro' not in st.session_state:
                 st.session_state["erro"] = 0
@@ -70,24 +128,44 @@ def main():
             
             with open(selected_file, 'r') as file:
                 reader = csv.reader(file)
-                next(reader)  # Skip the header
+                contador = 0
                 for row in reader:
                     try:
-                        labels = [label.strip() for label in row[0].split(';')]  # Strip whitespace and newline characters
+                        labels = [label.strip() for label in row[0].split(';')]  
                         row_dict = {'ID': labels[0],
                                     'Nome': labels[1],
                                     'PastaOrigem': labels[2],
                                     'PastaDestino': labels[3],
-                                    'PastaBackup': labels[4]}  # Create dictionary
-                        data.append(row_dict)
-                    except IndexError:
-                       
-                        st.session_state["erro"] = 1
-                        if 'disponivel' not in st.session_state:
-                            st.session_state["disponivel"] = 0
+                                    'PastaBackup': labels[4]}  
+                        if(contador != 0):
+                            data.append(row_dict)
                         else:
-                            st.session_state["disponivel"] = 0
-                        break
+                            contador+=1
+                    except IndexError:
+                       try:
+                        labels = [label.strip() for label in row[0].split(',')]  
+                        row_dict = {'ID': labels[0],
+                                    'Nome': labels[1],
+                                    'PastaOrigem': labels[2],
+                                    'PastaDestino': labels[3],
+                                    'PastaBackup': labels[4]}  
+                        if(contador != 0):
+                            data.append(row_dict)
+                        else:
+                            contador+=1
+                       except IndexError:
+                            st.session_state["erro"] = 1
+                            break                       
+
+                 
+            data = verifica_dados(data)
+
+            if 'disponivel' not in st.session_state:
+                if(st.session_state["erro"] == 1):
+                    st.session_state["disponivel"] = 0
+            else:
+                if(st.session_state["erro"] == 1):
+                    st.session_state["disponivel"] = 0
             if(st.session_state["erro"] == 0):
                 if 'disponivel' not in st.session_state:
                     st.session_state["disponivel"] = 1
@@ -96,8 +174,8 @@ def main():
                 output_file = 'output/func_data.csv'
                 with open(output_file, 'w', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=['ID', 'Nome', 'PastaOrigem', 'PastaDestino', 'PastaBackup'], delimiter=';')
-                    writer.writeheader()  # Write the header
-                    writer.writerows(data)  # Write the data rows
+                    writer.writeheader()  
+                    writer.writerows(data)  
                 # Chama o código em C para analisar os dados
                 subprocess.run(["gcc", "-o", "./source/main", "./source/main.c"])
 
@@ -110,59 +188,86 @@ def main():
 
                         
                         if os.path.exists("output/grafo.dot") and os.path.exists("output/dados.txt"):
+                            tab1, tab2 = st.tabs(["Grafo", "Dados"])
+                            dot_file = "output/grafo.dot"
+                            json_data = dot_to_json(dot_file)
 
+                            with tab1:
+                                st.subheader("Grafo gerado")
 
-                            command = f"dot -Tpng output/grafo.dot -o output/grafo.png"
-                            subprocess.run(command, shell=True)
-                            teste = ""
-                            with open("output/dados.txt", "r", encoding="utf-8") as file:
-                                teste = teste + file.read()
-                            teste = teste.split("Alturas:\n")
-
-                         
-                            alturas = teste[1].split('\n')
-                            alturas.pop()
-                            print(alturas)
-                            alturas = [(int(pair.split(',')[0]), int(pair.split(',')[1])) for pair in alturas]
-                            G = nx.drawing.nx_pydot.read_dot('output/grafo.dot')
-                            print(G.nodes)
-                            for node_id, altura in alturas:
-                                G.nodes[str(node_id)]["altura"] = altura
-
-
-                            
-                            # Desenhar o grafo usando Matplotlib
-                            nx.draw_shell(G, with_labels=True, node_color='skyblue', node_size=500, font_size=12, font_color='black')
-
-                            # Salvar o gráfico como um arquivo .png
-                            plt.savefig('output/grafo.png', format='png')
-
-                            imagem = np.array(Image.open('output/grafo.png'))
-
-
-                            # Carregar a imagem PNG
-                            fig = go.Figure()
-
-                            # Adicionar a imagem como um trace de imagem
-                            fig.add_trace(go.Image(z=imagem))
-
-                            # Configurar o layout do gráfico
-                            fig.update_layout(
+                                components.html( """          
+                                <html>
+                                <head>
+                                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+                                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+                                <center>
+                                <h1></h1>
+                                </center>
+                                <!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+                                <script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+                                <style type="text/css">
+                                        #mynetwork {
+                                            width: 100%;
+                                            height: 100%;
+                                            background-color: #ffffff;
+                                            position: absolute;
+                                            float: left;
+                                        }       
+                                </style>
+                                </head>
+                                <body>
+                                <div id = "mynetwork"></div>
+                                <div id = "config"></div>
+                                <script type="text/javascript">
+                                    var edges;
+                                    var nodes;
+                                    var network; 
+                                    var container;
+                                    var options, data;
+                                    function drawGraph() {
+                                        var container = document.getElementById('mynetwork');
+                                        var dotObject = JSON.parse(`"""+ json_data + """`);
+                                        var nodes = new vis.DataSet(dotObject.nodes);
+                                        var edges = new vis.DataSet(dotObject.edges);
+                                        data = {nodes: nodes, edges: edges};
+                                        var options = {
+                                        "manipulation": {
+                                            "enabled": true,
+                                            },
+                                            "layout": {
+                                            "hierarchical": {
+                                                "direction": "UD",
+                                                "sortMethod": "directed",
+                                            }
+                                        },
+                                        edges:{
+                                        "arrows": {
+                                        "to": { enabled: true, scaleFactor: 1, type: "arrow" }
+                                        }
+                                    },
+                                        "interaction": {
+                                            "dragNodes": true,
+                                            "hideEdgesOnDrag": false,
+                                            "hideNodesOnDrag": false,
+                                            "hover": true,
+                                            "keyboard":{enabled: true},
+                                            "multiselect": true,
+                                        },
+                                        "physics": false
+                                };
+                                        network = new vis.Network(container, data, options);
+                                        return network;
+                                    }
+                                    drawGraph();
+                                </script>
+                                </body>
+                                </html>
+                                """, height = 900,width=900)
+                            with tab2:
+                                st.subheader("Dados gerados")
                                 
-                                xaxis=dict(visible=False),
-                                yaxis=dict(visible=False),
-                            )
-
-                           
-                            st.write("Análise concluída. Verifique os resultados.")
-                            st.write("Grafo gerado:")
-                            st.plotly_chart(fig)
-
-                        
-                            st.write("Dados gerados:")
-                            
-                            st.text(teste[0])
-                        
+                                with open("output/dados.txt", "r", encoding="utf-8") as file:
+                                    st.text(file.read())
             
 
 if __name__ == "__main__":

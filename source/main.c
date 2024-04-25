@@ -178,11 +178,11 @@ fclose(file);
     }
     for (int i = 0; i < numaplicacoes; i++) {
         int vazio = 1;
-        fprintf(file, "Aplicacao %d\n", aplicacoes[i].ID);
+        fprintf(file, "Aplicação %d", aplicacoes[i].ID);
 
         if(aplicacoes[i].ud > 0){
         vazio = 0;
-        fprintf(file, "Usa dados de: ");
+        fprintf(file, "\nUsa dados de: ");
         for (int j = 0; j < aplicacoes[i].ud; j++) {
             fprintf(file, "%d", aplicacoes[i].usa_dados[j].ID);
              if (j < aplicacoes[i].ud - 1)  
@@ -191,8 +191,12 @@ fclose(file);
         fprintf(file, "\n");
         }
         if(aplicacoes[i].fd > 0){
-        vazio = 0;
+        
+        if(vazio == 0)
         fprintf(file, "Fornece dados pela saida para: ");
+        else
+        fprintf(file, "\nFornece dados pela saida para: ");
+        vazio = 0;
         for (int j = 0; j < aplicacoes[i].fd; j++) {
           
             fprintf(file, "%d", aplicacoes[i].fornce_dados[j].ID);
@@ -204,8 +208,13 @@ fclose(file);
         fprintf(file, "\n");
         }
         if(aplicacoes[i].fdb){
-        vazio = 0;
-        fprintf(file, "Fornece dados pelo backup para: ");
+
+          if(vazio == 0)
+          fprintf(file, "Fornece dados pelo backup para: ");
+          else
+          fprintf(file, "\nFornece dados pelo backup para: ");
+          vazio = 0;
+       
         for (int j = 0; j < aplicacoes[i].fdb; j++) {
             fprintf(file, "%d", aplicacoes[i].fornece_dados_backp[j].ID);
             if (j < aplicacoes[i].fdb - 1)  
@@ -214,25 +223,9 @@ fclose(file);
         fprintf(file, "\n");
         }
         if(vazio == 1){
-          fprintf(file, "A aplicação não possui relações\n");
+          fprintf(file, " não possui relações\n");
         }
          fprintf(file, "\n");
-    }
-    
-    fprintf(file,"Alturas:\n");
-    for(int i = 0; i < numaplicacoes; i++){
-    
-      if((aplicacoes[i].fd + aplicacoes[i].fdb) > 0 && aplicacoes[i].ud == 0){
-         
-          fprintf(file, "%d,1\n", aplicacoes[i].ID);
-
-      }else if(aplicacoes[i].ud > 0 && (aplicacoes[i].fd + aplicacoes[i].fdb) > 0){
-        fprintf(file, "%d,2\n", aplicacoes[i].ID);
-      }else if(aplicacoes[i].ud > 0 && (aplicacoes[i].fd + aplicacoes[i].fdb) == 0){
-        fprintf(file, "%d,3\n", aplicacoes[i].ID);
-      }else{
-        fprintf(file, "%d,4\n", aplicacoes[i].ID);
-      }
     }
 
     fclose(file);
