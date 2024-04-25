@@ -17,6 +17,5 @@ Ou pelo prompt de comando, mas para isso você deve ir até a pasta onde esta a 
 Exemplo:
 cd C:\Users\Staation\Desktop\Pasta compartilhada\Desafio-Hackathon-Hiperstream\
 streamlit run pagina_web.py
----------------------------------------
 A estrutura de pasta e disposição dos arquivos deve ser mantida!
 
