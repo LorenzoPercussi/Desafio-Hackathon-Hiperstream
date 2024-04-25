@@ -65,7 +65,7 @@ def dot_to_json(dot_file):
     edges = []
 
     for node in graph.get_nodes():
-        print(node.get_name())
+
 
         try:
             node_id = node.get_name().strip('"')
