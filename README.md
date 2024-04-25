@@ -18,4 +18,4 @@ Exemplo:<br />
 cd C:\Users\Staation\Desktop\Pasta compartilhada\Desafio-Hackathon-Hiperstream\<br />
 streamlit run pagina_web.py<br />
 A estrutura de pasta e disposição dos arquivos deve ser mantida!<br />
-
+Para mais informações consulte o PDF: "Documentação Hackathon.pdf"<br />
