@@ -4,17 +4,13 @@ import subprocess
 import csv
 import pandas as pd
 from ctypes import *
+import pydot
+from PIL import Image
+import plotly.graph_objects as go
+import numpy as np
 
-
-
-def adicionar_ligacao(grafo_dot, origem, destino, tipo):
-    # Implemente a lógica para adicionar a ligação ao arquivo .dot
-    pass
-
-# Função para remover uma ligação do arquivo .dot
-def remover_ligacao(grafo_dot, origem, destino, tipo):
-    # Implemente a lógica para remover a ligação do arquivo .dot
-    pass
+import networkx as nx
+import matplotlib.pyplot as plt
 
 def move_uploaded_file(uploaded_file):
     file_path = os.path.join("csv", uploaded_file.name)
@@ -111,49 +107,62 @@ def main():
                  st.write("Arquivo Invalido")   
             if(st.session_state["disponivel"] == 1):
               
-                tab1, tab2, = st.tabs(["Analise", "Personalizar Garfo"])
-                tab1_container = st.container()
-                tab2_container = st.container()
-                with tab1_container:
-                    with tab1:
-                        st.write("Análise concluída. Verifique os resultados.")
-                        if os.path.exists("output/grafo.dot"):
-                            st.write("Grafo gerado:")
+
+                        
+                        if os.path.exists("output/grafo.dot") and os.path.exists("output/dados.txt"):
+
+
                             command = f"dot -Tpng output/grafo.dot -o output/grafo.png"
                             subprocess.run(command, shell=True)
-                            st.image("output/grafo.png")
-
-                        if os.path.exists("output/dados.txt"):
-                            st.write("Dados gerados:")
+                            teste = ""
                             with open("output/dados.txt", "r", encoding="utf-8") as file:
-                                st.text(file.read())
-                with tab2_container:
-                    with tab2:
+                                teste = teste + file.read()
+                            teste = teste.split("Alturas:\n")
+
+                         
+                            alturas = teste[1].split('\n')
+                            alturas.pop()
+                            print(alturas)
+                            alturas = [(int(pair.split(',')[0]), int(pair.split(',')[1])) for pair in alturas]
+                            G = nx.drawing.nx_pydot.read_dot('output/grafo.dot')
+                            print(G.nodes)
+                            for node_id, altura in alturas:
+                                G.nodes[str(node_id)]["altura"] = altura
+
+
+                            
+                            # Desenhar o grafo usando Matplotlib
+                            nx.draw_shell(G, with_labels=True, node_color='skyblue', node_size=500, font_size=12, font_color='black')
+
+                            # Salvar o gráfico como um arquivo .png
+                            plt.savefig('output/grafo.png', format='png')
+
+                            imagem = np.array(Image.open('output/grafo.png'))
+
+
+                            # Carregar a imagem PNG
+                            fig = go.Figure()
+
+                            # Adicionar a imagem como um trace de imagem
+                            fig.add_trace(go.Image(z=imagem))
+
+                            # Configurar o layout do gráfico
+                            fig.update_layout(
+                                
+                                xaxis=dict(visible=False),
+                                yaxis=dict(visible=False),
+                            )
+
+                           
+                            st.write("Análise concluída. Verifique os resultados.")
+                            st.write("Grafo gerado:")
+                            st.plotly_chart(fig)
+
                         
-            
-
-                            selected_action =  st.selectbox("Selecione a Ação:", ["Adicionar Ligação", "Remover Ligação"])
-                            if selected_action == "Adicionar Ligação":
-                                # Dropdowns para selecionar origem, destino e tipo
-                                origem_id = st.selectbox("Origem ID:", df['ID'].tolist())
-                                origem_nome = df.loc[df['ID'] == origem_id, 'Nome'].iloc[0]
-                                destino_id = st.selectbox("Destino ID:", df['ID'].tolist())
-                                destino_nome = df.loc[df['ID'] == destino_id, 'Nome'].iloc[0]
-                                tipo = st.selectbox("Tipo:", ["Destino", "Backup"])
-
-                                if st.button("Adicionar"):
-                                    adicionar_ligacao("grafo.dot", origem_nome, destino_nome, tipo)
-
-                            elif selected_action == "Remover Ligação":
-                                # Dropdowns para selecionar origem, destino e tipo
-                                origem_id_remover = st.selectbox("Origem ID:", df['ID'].tolist())
-                                origem_nome_remover = df.loc[df['ID'] == origem_id_remover, 'Nome'].iloc[0]
-                                destino_id_remover = st.selectbox("Destino ID:", df['ID'].tolist())
-                                destino_nome_remover = df.loc[df['ID'] == destino_id_remover, 'Nome'].iloc[0]
-                                tipo_remover = st.selectbox("Tipo:", ["Destino", "Backup"])
-
-                                if st.button("Remover"):
-                                    remover_ligacao("grafo.dot", origem_nome_remover, destino_nome_remover, tipo_remover)
+                            st.write("Dados gerados:")
+                            
+                            st.text(teste[0])
+                        
             
 
 if __name__ == "__main__":

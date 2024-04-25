@@ -149,6 +149,8 @@ if (file == NULL) {
 }
 
 fprintf(file, "digraph G {\n");
+fprintf(file, "rankdir=TB; \n");
+
 for (int i = 0; i < numaplicacoes; i++) {
     // Escapando caracteres especiais nas strings de label
     char escaped_label[MAX_LINE_LENGTH];
@@ -215,6 +217,22 @@ fclose(file);
           fprintf(file, "A aplicação não possui relações\n");
         }
          fprintf(file, "\n");
+    }
+    
+    fprintf(file,"Alturas:\n");
+    for(int i = 0; i < numaplicacoes; i++){
+    
+      if((aplicacoes[i].fd + aplicacoes[i].fdb) > 0 && aplicacoes[i].ud == 0){
+         
+          fprintf(file, "%d,1\n", aplicacoes[i].ID);
+
+      }else if(aplicacoes[i].ud > 0 && (aplicacoes[i].fd + aplicacoes[i].fdb) > 0){
+        fprintf(file, "%d,2\n", aplicacoes[i].ID);
+      }else if(aplicacoes[i].ud > 0 && (aplicacoes[i].fd + aplicacoes[i].fdb) == 0){
+        fprintf(file, "%d,3\n", aplicacoes[i].ID);
+      }else{
+        fprintf(file, "%d,4\n", aplicacoes[i].ID);
+      }
     }
 
     fclose(file);
