@@ -15,7 +15,7 @@ O codigo pode ser executado de duas maneiras:<br />
 Executando o “run.bat” <br />
 Ou pelo prompt de comando, mas para isso você deve ir até a pasta onde esta a aplicação e então digitar streamlit run paginaweb.py<br />
 Exemplo:<br />
-cd C:\Users\Staation\Desktop\Pasta compartilhada\Desafio-Hackathon-Hiperstream\<br />
-streamlit run pagina_web.py<br />
+cd C:\Users\Staation\Desktop\Pasta compartilhada\Desafio-Hackathon-Hiperstream\     <br />
+streamlit run pagina_web.py  <br />
 A estrutura de pasta e disposição dos arquivos deve ser mantida!<br />
 Para mais informações consulte o PDF: "Documentação Hackathon.pdf"<br />
