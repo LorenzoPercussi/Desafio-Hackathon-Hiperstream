@@ -9,9 +9,34 @@ import pandas as pd
 import pydotplus
 import re
 
+def nao_pode(pasta):
+    sistema = r'^[a-zA-Z]:'
+    try:
+        pasta = pasta.split('\\')
+        for i in range (len(pasta)):
+           
+            if("/" in pasta[i] or "*" in pasta[i] or "?" in pasta[i] or "<" in pasta[i] or ">" in pasta[i] or "|" in pasta[i] or "\"" in pasta[i] or ":" in pasta[i]):
+
+             
+
+                    if(not re.match(sistema, pasta[i])):
+                        st.session_state["erro"] = 1
+                        return 1
+    except:
+        if("/" in pasta or "*" in pasta or "?" in pasta or "<" in pasta or ">" in pasta or "|" in pasta or "\"" in pasta or ":" in pasta):
+
+
+            if(not re.match(sistema, pasta)):
+                st.session_state["erro"] = 1
+                return 1
+            
+        else:
+            pass
+        
+    return 0
 
 def verifica_dados(dataset):
-    padrao_pasta = r'^(?:[a-zA-Z]:[\\\/]|\\\\)(?:[a-zA-Z0-9]+[\\\/])*[a-zA-Z0-9]'
+
     padrao_id = set()
     dados_limpos = []
     if(len(dataset) > 0):
@@ -57,22 +82,16 @@ def verifica_dados(dataset):
             if pasta_origem == pasta_backup:
                 st.write(f"A pasta de origem é igual à pasta de backup. ID: {id_}")   
                 st.session_state["erro"] = 1
+
+            if(nao_pode(pasta_origem) == 1):
+                st.write(f"A pasta de origem contem caracter inapropriado. ID: {id_}")   
+            if(nao_pode(pasta_destino) == 1):
+                st.write(f"A pasta de destino contem caracter inapropriado. ID: {id_}")   
+            if(nao_pode(pasta_backup) == 1):
+                st.write(f"A pasta de backup contem caracter inapropriado. ID: {id_}")   
             
-            # Verifica se as pastas seguem o padrão
-            if not re.match(padrao_pasta, pasta_origem) and pasta_origem != "":
-                
-                st.write(f"A pasta de origem não segue o padrão. ID: {id_}")
-                st.session_state["erro"] = 1
             
-            if not re.match(padrao_pasta, pasta_destino) and pasta_destino != "":
-                
-                st.write(f"A pasta de destino não segue o padrão. ID: {id_}")
-                st.session_state["erro"] = 1
-            
-            if not re.match(padrao_pasta, pasta_backup) and pasta_backup != "":
-                
-                st.write(f"A pasta de backup não segue o padrão. ID: {id_}")
-                st.session_state["erro"] = 1
+
                 
     else:
         st.session_state["erro"] = 1
